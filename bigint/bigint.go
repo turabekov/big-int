@@ -211,22 +211,6 @@ func Multiply(a, b Bigint) Bigint {
 	// MATH Multiply
 
 	res := ""
-	// check length
-	if len(a.Value) > len(b.Value) {
-		zeros := ""
-		diff := len(a.Value) - len(b.Value)
-		for i := 0; i < diff; i++ {
-			zeros += "0"
-		}
-		b.Value = zeros + b.Value
-	} else if len(a.Value) < len(b.Value) {
-		zeros := ""
-		diff := len(b.Value) - len(a.Value)
-		for i := 0; i < diff; i++ {
-			zeros += "0"
-		}
-		a.Value = zeros + a.Value
-	}
 	// ==================================================
 	var dif string
 
@@ -280,20 +264,9 @@ func Multiply(a, b Bigint) Bigint {
 
 	}
 
-	// remove zeros from begining
-	byteStr := []byte{}
-	for i := 0; i < len(res); i++ {
-		byteStr = append(byteStr, res[i])
-	}
-	for i := 0; i < len(byteStr); i++ {
-		if byteStr[i] >= 49 && byteStr[i] <= 57 {
-			break
-		}
-		byteStr[i] = 0
-	}
 	ans := ""
-	for i := 0; i < len(byteStr); i++ {
-		ans += string(byteStr[i])
+	for i := 0; i < len(res); i++ {
+		ans += string(res[i])
 	}
 
 	return Bigint{Value: ans}
@@ -303,8 +276,84 @@ func Multiply(a, b Bigint) Bigint {
 func Mod(a, b Bigint) Bigint {
 	//
 	// MATH Mod
-	//
-	return Bigint{Value: ""}
+
+	// check length
+	if len(a.Value) < len(b.Value) {
+		return Bigint{Value: "0"}
+	}
+	if len(a.Value) == len(b.Value) {
+		for i := 0; i < len(a.Value); i++ {
+			x, err := strconv.Atoi(string(a.Value[i]))
+			if err != nil {
+				return Bigint{}
+			}
+			y, err := strconv.Atoi(string(b.Value[i]))
+			if err != nil {
+				return Bigint{}
+			}
+
+			if x < y {
+				return Bigint{Value: "0"}
+			}
+		}
+	}
+
+	// calculation logics of mod
+	// delitel
+	//================================================================================
+	// begin values
+	y, err := strconv.Atoi(string(b.Value))
+	if err != nil {
+		return Bigint{}
+	}
+	i := len(b.Value)
+	x, err := strconv.Atoi(string(a.Value[0:len(b.Value)]))
+	if err != nil {
+		return Bigint{}
+	}
+	if x < y {
+		i = len(b.Value) + 1
+		x, err = strconv.Atoi(string(a.Value[0:(len(b.Value) + 1)]))
+		if err != nil {
+			return Bigint{}
+		}
+	}
+	//================================================================================
+	res := ""
+	z := 0
+	flag := false
+	for {
+		z = x / y
+		if z == 0 {
+			break
+		}
+		curr := strconv.Itoa(z)
+		res += curr
+		if flag {
+			break
+		}
+		x = x % y
+		if x < y {
+			cur := strconv.Itoa(x)
+			for x < y {
+				if i >= len(a.Value) {
+					flag = true
+					break
+				}
+				cur += string(a.Value[i])
+				i++
+				x, err = strconv.Atoi(cur)
+				fmt.Println("last x", x)
+				if err != nil {
+					return Bigint{}
+				}
+			}
+
+		}
+
+	}
+	//================================================================================
+	return Bigint{Value: res}
 }
 
 func (x *Bigint) Abs() Bigint {
